@@ -1,0 +1,1576 @@
+{
+	"info": {
+		"_postman_id": "c4b66adc-d423-4a4f-abfd-f3d26ab8aaa4",
+		"name": "Experience 2020 - API Best Practices",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Obtain Token (ROPC)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a9effe5f-1966-48d5-81e3-7ece1ed5ba61",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"access_token\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{smart_client_user}}@encompass:{{instance}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{smart_client_password}}",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_server}}/oauth2/v1/token",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"oauth2",
+								"v1",
+								"token"
+							]
+						},
+						"description": " Get New Token for Lab"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtain Token (API User)",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{client_secret}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{client_id}}",
+									"type": "string"
+								},
+								{
+									"key": "saveHelperData",
+									"type": "any"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "client_credentials",
+									"type": "text"
+								},
+								{
+									"key": "instance_id",
+									"value": "{{instance}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{api_user_password}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_server}}/oauth2/v1/token",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"oauth2",
+								"v1",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Introspect Token",
+					"request": {
+						"auth": {
+							"type": "basic",
+							"basic": [
+								{
+									"key": "password",
+									"value": "{{client_secret}}",
+									"type": "string"
+								},
+								{
+									"key": "username",
+									"value": "{{client_id}}",
+									"type": "string"
+								},
+								{
+									"key": "saveHelperData",
+									"type": "any"
+								},
+								{
+									"key": "showPassword",
+									"value": false,
+									"type": "boolean"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_server}}/oauth2/v1/token/introspection",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"oauth2",
+								"v1",
+								"token",
+								"introspection"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Lock and Concurrency",
+			"item": [
+				{
+					"name": "Resource Locks",
+					"item": [
+						{
+							"name": "Lock a resource (loan) Exclusive",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "23b2624f-03ed-4fc8-bac1-3c1af54931e9",
+										"exec": [
+											"var loc = postman.getResponseHeader(\"location\");",
+											"postman.setEnvironmentVariable(\"lock_id\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"resource\":{\n    \"entityId\": \"{{loan_guid}}\", \n    \"entityType\": \"loan\"  \n  },\n  \"lockType\": \"exclusive\"\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									]
+								},
+								"description": "Create an exclusive loan resource lock"
+							},
+							"response": []
+						},
+						{
+							"name": "Lock a resource (loan) Shared",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "9c0924dc-1564-43d7-a892-14be71b144ca",
+										"exec": [
+											"var loc = postman.getResponseHeader(\"location\");",
+											"postman.setEnvironmentVariable(\"lock_id_2\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token2}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"resource\":{\n    \"entityId\": \"{{loan_guid}}\", \n    \"entityType\": \"loan\"  \n  },\n  \"lockType\": \"shared\"\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									]
+								},
+								"description": "Create a shared loan resource lock"
+							},
+							"response": []
+						},
+						{
+							"name": "Retrieve locks",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								},
+								"description": "This step retrieves the loan you created."
+							},
+							"response": []
+						},
+						{
+							"name": "Unlock a resource (loan)",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks/{{lock_id}}?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks",
+										"{{lock_id}}"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								},
+								"description": "Remove resource lock on loan"
+							},
+							"response": []
+						}
+					],
+					"description": "This folder has all loan management related API calls",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "9a8dd7f5-a743-4ec7-b3ae-e3b57ccc357e",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "3c1fbe98-4c03-4c2c-8186-3ff2a8dfacaf",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Concurrency - Pessimistic Lock",
+					"item": [
+						{
+							"name": "01 - Lock a resource (loan) Exclusive",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "ce4510a1-6859-4133-9bba-cadc7c71a3f5",
+										"exec": [
+											"postman.clearEnvironmentVariable(\"lock_id\");",
+											"var loc = postman.getResponseHeader(\"location\");",
+											"postman.setEnvironmentVariable(\"lock_id\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"resource\":{\n    \"entityId\": \"{{loan_guid}}\", \n    \"entityType\": \"loan\"  \n  },\n  \"lockType\": \"exclusive\"\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									]
+								},
+								"description": "Create a loan based on the sample provided in the developer connect documentation"
+							},
+							"response": []
+						},
+						{
+							"name": "03 - Retrieve locks",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "02 - Retrieve Loan Data",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"loans",
+										"{{loan_guid}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Update Appraisal Fee",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"fees\":[\n\t\t {\n            \"feeType\": \"AppraisalFee\",\n            \"id\": \"AppraisalFee\",\n            \"borPaidAmount\": 595\n        }\n\t]\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}?view=entity",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"loans",
+										"{{loan_guid}}"
+									],
+									"query": [
+										{
+											"key": "view",
+											"value": "entity"
+										}
+									]
+								},
+								"description": "update appraisal fee"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Property Tax Monthly Amount",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token2}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"fees\":[\n        {\n            \"feeType\": \"PropertyTaxes\",\n            \"id\": \"PropertyTaxes\",\n            \"monthlyPayment\": 350\n        }\n\t],\n\t\"Hud1Es\":{\n\t\t\"realEstateTaxName\": \"NY State\"\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"loans",
+										"{{loan_guid}}"
+									]
+								},
+								"description": "Update monthly property tax and pay to field"
+							},
+							"response": []
+						},
+						{
+							"name": "04 - Unlock a resource (loan)",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks/{{lock_id}}?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks",
+										"{{lock_id}}"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								},
+								"description": "Release loan lock"
+							},
+							"response": []
+						}
+					],
+					"description": "Acquire Exclusive Lock on Loan\r\nNo other process can update Loan w/o same Lock ID\r\nPrevents other processes / sessions from acquiring a lock\r\nMust remember to release the lock\r\n",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3b02e1a6-ea2d-4779-9a95-9c234fe461a7",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "7f55087a-07fa-4041-9f75-204600708358",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "Concurrency - Explicit Shared Lock",
+					"item": [
+						{
+							"name": "01 - Lock a resource (loan) - user2",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "358f950d-e24c-4773-9240-343d43f22c80",
+										"exec": [
+											"var loc = postman.getResponseHeader(\"location\");",
+											"postman.setEnvironmentVariable(\"lock_id_2\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token2}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"resource\":{\n    \"entityId\": \"{{loan_guid}}\", \n    \"entityType\": \"loan\"  \n  },\n  \"lockType\": \"shared\"\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									]
+								},
+								"description": "Acquire an explicit shared lock as user 2"
+							},
+							"response": []
+						},
+						{
+							"name": "01a - Retrieve locks",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								},
+								"description": "Retrieve the current resource locks on the loan"
+							},
+							"response": []
+						},
+						{
+							"name": "02 - Retrieve Loan Data",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token2}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"loans",
+										"{{loan_guid}}"
+									]
+								},
+								"description": "Retrieve the loan data"
+							},
+							"response": []
+						},
+						{
+							"name": "03a - Update Appraisal Fee",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token2}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"fees\":[\n\t\t {\n            \"feeType\": \"AppraisalFee\",\n            \"id\": \"AppraisalFee\",\n            \"borPaidAmount\": 695\n        }\n\t]\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}?view=entity",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"loans",
+										"{{loan_guid}}"
+									],
+									"query": [
+										{
+											"key": "view",
+											"value": "entity"
+										}
+									]
+								},
+								"description": "Update the appraisal fee"
+							},
+							"response": []
+						},
+						{
+							"name": "01 - Lock a resource (loan) - user1",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "05fb0e18-9bbc-4b86-8189-68eec4b0a98e",
+										"exec": [
+											"var loc = postman.getResponseHeader(\"location\");",
+											"postman.setEnvironmentVariable(\"lock_id\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"resource\":{\n    \"entityId\": \"{{loan_guid}}\", \n    \"entityType\": \"loan\"  \n  },\n  \"lockType\": \"shared\"\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks?force=true",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks"
+									],
+									"query": [
+										{
+											"key": "force",
+											"value": "true"
+										}
+									]
+								},
+								"description": "Acquire an explicit shared lock as user 1"
+							},
+							"response": []
+						},
+						{
+							"name": "03b - Update Property Tax Monthly Amount",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\t\"fees\":[\n        {\n            \"feeType\": \"PropertyTaxes\",\n            \"id\": \"PropertyTaxes\",\n            \"monthlyPayment\": 350\n        }\n\t],\n\t\"Hud1Es\":{\n\t\t\"realEstateTaxName\": \"NY State\"\n\t}\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"loans",
+										"{{loan_guid}}"
+									]
+								},
+								"description": "Update the property tax amount as user 1"
+							},
+							"response": []
+						},
+						{
+							"name": "03c - Create a Document",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "c0e1dc99-0fb4-4680-bfab-fb614707eba4",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"doc_id\", jsonData[0].id);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n  {\n    \"title\": \"Testing Doc\",\n    \"description\": \"Testing Doc creation through v3 API\"\n  }\n]"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v3/loans/{{loan_guid}}/documents?action=add&view=entity",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v3",
+										"loans",
+										"{{loan_guid}}",
+										"documents"
+									],
+									"query": [
+										{
+											"key": "action",
+											"value": "add"
+										},
+										{
+											"key": "view",
+											"value": "entity"
+										}
+									]
+								},
+								"description": "Create a document container as user 1"
+							},
+							"response": []
+						},
+						{
+							"name": "03d - Get URL to Upload Attachment to eFolder",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "8a3fb671-324e-43a1-9910-473b5e1eb783",
+										"exec": [
+											"var jsonData = JSON.parse(responseBody);",
+											"postman.setEnvironmentVariable(\"upload_media_url\", jsonData.uploadUrl);",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"file\": {\n      \"contentType\": \"application/pdf\",\n      \"name\": \"ratelocks.pdf\",\n      \"size\": 10000\n    },\n    \"title\": \"Rate locks doc\"\n}"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v3/loans/{{loan_guid}}/attachmentUploadUrl",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v3",
+										"loans",
+										"{{loan_guid}}",
+										"attachmentUploadUrl"
+									]
+								},
+								"description": "Create a upload URL as user 1"
+							},
+							"response": []
+						},
+						{
+							"name": "03e - Upload Attachment",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "1977d710-9932-4c71-81c4-45b0f6a37b04",
+										"exec": [
+											"postman.clearEnvironmentVariable(\"attachment_id\");",
+											"var loc = postman.getResponseHeader(\"location\");",
+											"postman.setEnvironmentVariable(\"attachment_id\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "file",
+									"file": {
+										"src": "/D:/Users/CChan/Downloads/Experience/samplePDF.pdf"
+									}
+								},
+								"url": {
+									"raw": "{{upload_media_url}}",
+									"host": [
+										"{{upload_media_url}}"
+									]
+								},
+								"description": "Upload attachment to Encompass"
+							},
+							"response": []
+						},
+						{
+							"name": "03f - Assign Attachments",
+							"request": {
+								"method": "PATCH",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									},
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "[\n  {\n    \"entityId\" : \"{{attachment_id}}\",\n    \"entityType\" : \"attachment\"\n  }\n]"
+								},
+								"url": {
+									"raw": "{{api_server}}/encompass/v3/loans/{{loan_guid}}/documents/{{doc_id}}/attachments?action=add",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v3",
+										"loans",
+										"{{loan_guid}}",
+										"documents",
+										"{{doc_id}}",
+										"attachments"
+									],
+									"query": [
+										{
+											"key": "action",
+											"value": "add"
+										}
+									]
+								},
+								"description": "Assign attachment to document"
+							},
+							"response": []
+						},
+						{
+							"name": "04 - Unlock a resource (loan) - user2",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token2}}"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks/{{lock_id_2}}?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks",
+										"{{lock_id_2}}"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								},
+								"description": "Release loan lock for user 2"
+							},
+							"response": []
+						},
+						{
+							"name": "04 - Unlock a resource (loan) - user1",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"url": {
+									"raw": "{{api_server}}/encompass/v1/resourceLocks/{{lock_id}}?resourceType=loan&resourceId={{loan_guid}}",
+									"host": [
+										"{{api_server}}"
+									],
+									"path": [
+										"encompass",
+										"v1",
+										"resourceLocks",
+										"{{lock_id}}"
+									],
+									"query": [
+										{
+											"key": "resourceType",
+											"value": "loan"
+										},
+										{
+											"key": "resourceId",
+											"value": "{{loan_guid}}"
+										}
+									]
+								},
+								"description": "Release loan lock for user 1"
+							},
+							"response": []
+						}
+					],
+					"description": "Acquire Exclusive Lock on Loan\r\nNo other process can update Loan w/o same Lock ID\r\nPrevents other processes / sessions from acquiring a lock\r\nMust remember to release the lock\r\n",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "a60864eb-8124-4c69-a9bc-daf45eb76c56",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "5c44ae5a-098d-4868-be1b-32788174dfde",
+								"type": "text/javascript",
+								"exec": [
+									""
+								]
+							}
+						}
+					],
+					"protocolProfileBehavior": {},
+					"_postman_isSubFolder": true
+				},
+				{
+					"name": "00 - Get Security Token user1",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7d52b8ff-22c6-4c61-809d-42377f39f4c2",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"access_token\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{smart_client_user}}@encompass:{{instance}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{smart_client_password}}",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_server}}/oauth2/v1/token",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"oauth2",
+								"v1",
+								"token"
+							]
+						},
+						"description": "Get New Token for user 1"
+					},
+					"response": []
+				},
+				{
+					"name": "00 - Get Security Token user2",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "8191eb9e-b4b9-4ae0-88d7-dbfa53cf1e6d",
+								"exec": [
+									"var jsonData = JSON.parse(responseBody);",
+									"postman.setEnvironmentVariable(\"access_token2\", jsonData.access_token);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "grant_type",
+									"value": "password",
+									"type": "text"
+								},
+								{
+									"key": "username",
+									"value": "{{smart_client_user2}}@encompass:{{instance}}",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "{{smart_client_password}}",
+									"type": "text"
+								},
+								{
+									"key": "client_id",
+									"value": "{{client_id}}",
+									"type": "text"
+								},
+								{
+									"key": "client_secret",
+									"value": "{{client_secret}}",
+									"type": "text"
+								},
+								{
+									"key": "",
+									"value": "",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{api_server}}/oauth2/v1/token",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"oauth2",
+								"v1",
+								"token"
+							]
+						},
+						"description": "Get New Token for user 2"
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Webhooks",
+			"item": [
+				{
+					"name": "Retrieve Subscriptions",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "YOJynptoFkfDP7RSmfJIiXDozQyE",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://{{api_host}}/webhook/v1/subscriptions",
+							"protocol": "https",
+							"host": [
+								"{{api_host}}"
+							],
+							"path": [
+								"webhook",
+								"v1",
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Subscription",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "4db5df58-1a7b-406a-a4f8-f651b665c89b",
+								"exec": [
+									"var loc = postman.getResponseHeader(\"location\");",
+									"postman.setEnvironmentVariable(\"subscription_id\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"resource\": \"Loan\",\n    \"events\": [\n        \"create\",\n        \"change\"\n    ],\n    \"filters\": {\n        \"attributes\": [\n            \"/applications/*/borrower/firstName\",\n            \"/applications/*/borrower/lastName\"\n        ]\n    },\n    \"signingkey\": \"zJW4rDS0wYzvkmjkrgg*4PVjxk$PFaTz&akG&WY5ahc!^S#23rYw8ehAZnLStPm*\",\n    \"endpoint\": \"https://webhook.site/8da0f6d8-30d8-4181-899d-a78fab802243\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_server}}/webhook/v1/subscriptions",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"webhook",
+								"v1",
+								"subscriptions"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Subscription",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{api_server}}/webhook/v1/subscriptions/{{subscription_id}}",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"webhook",
+								"v1",
+								"subscriptions",
+								"{{subscription_id}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Loan",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "eb4db607-abf3-426f-88f8-95521aba08cb",
+								"exec": [
+									"var loc = postman.getResponseHeader(\"location\");",
+									"postman.setEnvironmentVariable(\"loan_guid\", loc.substring(loc.lastIndexOf(\"/\")+1,loc.len));"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"applicationTakenMethodType\": \"Internet\",\n    \"applications\": [\n        {\n            \"borrower\": {\n                \"birthDate\": \"1983-01-02\",\n                \"emailAddressText\": \"experience_lab@home.com\",\n                \"firstName\": \"Experience\",\n                \"homePhoneNumber\": \"415-555-1212\",\n                \"lastName\": \"Lab\",\n                \"employment\": [\n                    {\n                        \"owner\": \"Borrower\",\n                        \"currentEmploymentIndicator\": true,\n                        \"phoneNumber\": \"510-123-3232\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{api_server}}/encompass/v1/loans?view=entity",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"encompass",
+								"v1",
+								"loans"
+							],
+							"query": [
+								{
+									"key": "view",
+									"value": "entity"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loan",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{api_server}}/encompass/v3/loans/{{loan_guid}}",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"encompass",
+								"v3",
+								"loans",
+								"{{loan_guid}}"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Borrower",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{access_token}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "X-API-Key",
+								"value": "9JsmcmHyzJuokoWeJJ8HGiRgS5GR8cSKVswz",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \n    \"applications\": [\n        {\n        \t \"id\": \"92ac33ad-e217-4d53-a9de-3a2a717f470a\",\n            \"borrower\": {\n                \"birthDate\": \"1983-01-02\",\n                \"emailAddressText\": \"experience_lab@home.com\",\n                \"firstName\": \"Experience Updated\",\n                \"homePhoneNumber\": \"415-555-1212\",\n                \"lastName\": \"Lab\",\n                \"employment\": [\n                    {\n                        \"owner\": \"Borrower\",\n                        \"currentEmploymentIndicator\": true,\n                        \"phoneNumber\": \"510-123-3232\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{api_server}}/encompass/v1/loans/{{loan_guid}}?view=entity",
+							"host": [
+								"{{api_server}}"
+							],
+							"path": [
+								"encompass",
+								"v1",
+								"loans",
+								"{{loan_guid}}"
+							],
+							"query": [
+								{
+									"key": "view",
+									"value": "entity"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		}
+	],
+	"protocolProfileBehavior": {}
+}
